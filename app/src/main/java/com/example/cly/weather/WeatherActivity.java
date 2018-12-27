@@ -57,15 +57,35 @@ public class WeatherActivity extends AppCompatActivity {
             showWeatherInfo(weather);
         }else{
             String weatherId=getIntent().getStringExtra( "weather_id" );
-            weatherLayout.setVisibility( View.INVISIBLE );
+            weatherLayout.setVisibility( View.INVISIBLE );//xianshi weather information
             requestWeather(weatherId);
         }
     }
     public void requestWeather(final String weatherId){
-        String weatherUrl = "http://guolin.tech/api/weather?cityid="+weatherId+"&key=bc0418b57b2d4918819d3974ac1285d9";
-        HttpUtil.sendOkHttpRequest( weatherUrl, new Callback() {
+        String weatherUrl = "http://guolin.tech/api/weather?cityid="+weatherId+"&key=HE1812050917381522";
+
+        HttpUtil.sendHttpRequest(weatherUrl,new ChooseAreaFragment.HttpCallbackListener(){
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFinish(String response) {
+                final String responseText=response;
+                final Weather weather=Utility.handWeatherResponse( responseText );
+                runOnUiThread( new Runnable() {
+                    @Override
+                    public void run() {
+                        if(weather!=null&&"ok".equals( weather.status )){
+                            SharedPreferences.Editor editor=PreferenceManager.getDefaultSharedPreferences( WeatherActivity.this ).edit();
+                            editor.putString( "weather",responseText );
+                            editor.apply();//提交给数据库
+                            showWeatherInfo(weather);
+                        }
+                        else{
+                            Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } );
+            }
+            @Override
+            public void onError(Exception e){//fail
                 e.printStackTrace();
                 runOnUiThread( new Runnable() {
                     @Override
@@ -74,28 +94,7 @@ public class WeatherActivity extends AppCompatActivity {
                     }
                 } );
             }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                final String responseText=response.body().string();
-                final Weather weather=Utility.handWeatherResponse( responseText );
-                runOnUiThread( new Runnable() {
-                    @Override
-                    public void run() {
-                        if(weather!=null&&"ok".equals( weather.status )){
-                            SharedPreferences.Editor editor=PreferenceManager.getDefaultSharedPreferences( WeatherActivity.this ).edit();
-                            editor.putString( "weather",responseText );
-                            editor.apply();
-                            showWeatherInfo(weather);
-                        }
-                        else{
-                            Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                } );
-
-            }
-        } );
+        });
     }
     private void showWeatherInfo(Weather weather){
         String cityName=weather.basic.cityName;
