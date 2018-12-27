@@ -16,12 +16,6 @@ import com.example.cly.weather.gson.Weather;
 import com.example.cly.weather.util.HttpUtil;
 import com.example.cly.weather.util.Utility;
 
-import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
-
 public class WeatherActivity extends AppCompatActivity {
 
     private ScrollView weatherLayout;
